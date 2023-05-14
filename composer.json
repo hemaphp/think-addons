@@ -8,9 +8,6 @@
             "email": "hemaphp@qq.com"
         }
     ],
-    "require": {
-        "hemaphp/think-addons": "dev-main"
-    },
     "autoload": {
         "psr-4": {
             "think\\": "src/"
