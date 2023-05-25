@@ -11,7 +11,7 @@ use think\helper\{
     $console->addCommands([
         'addons:config' => '\\think\\addons\\command\\SendConfig'
     ]);
-}); 
+});
 
 // 插件类库自动载入
 spl_autoload_register(function ($class){
@@ -35,6 +35,7 @@ spl_autoload_register(function ($class){
     }
     return false;
 });
+
 if (!function_exists('hook')) {
     /**
      * 处理插件钩子
@@ -49,106 +50,7 @@ if (!function_exists('hook')) {
         return join('', $result);
     }
 }
-if (!function_exists('remove_empty_folder')) {
-    /**
-     * 移除空目录
-     * @param string $dir 目录
-     */
-    function remove_empty_folder($dir)
-    {
-        try {
-            $isDirEmpty = !(new \FilesystemIterator($dir))->valid();
-            if ($isDirEmpty) {
-                @rmdir($dir);
-                remove_empty_folder(dirname($dir));
-            }
-        } catch (\UnexpectedValueException $e) {
-    
-        } catch (\Exception $e) {
-    
-        }
-    }
-}
-if (!function_exists('get_addons_class')) {
-    /**
-     * 获取插件类的类名
-     * @param string $name 插件名
-     * @param string $type 返回命名空间类型
-     * @param string $class 当前类名
-     * @return string
-     */
-    function get_addons_class($name, $type = 'hook', $class = null)
-    {
-        $name = trim($name);
-        // 处理多级控制器情况
-        if (!is_null($class) && strpos($class, '.')) {
-            $class = explode('.', $class);
-            $class[count($class) - 1] = Str::studly(end($class));
-            $class = implode('\\', $class);
-        } else {
-            $class = Str::studly(is_null($class) ? $name : $class);
-        }
-        switch ($type) {
-            case 'controller':
-                $namespace = '\\addons\\' . $name . '\\controller\\' . $class;
-                break;
-            default:
-                $namespace = '\\addons\\' . $name . '\\Plugin';
-        }
-        return class_exists($namespace) ? $namespace : '';
-    }
-}
-if (!function_exists('remove_empty_folder')) {    
-    /**
-     * 移除空目录
-     * @param string $dir 目录
-     */
-    function remove_empty_folder($dir)
-    {
-        try {
-            $isDirEmpty = !(new \FilesystemIterator($dir))->valid();
-            if ($isDirEmpty) {
-                @rmdir($dir);
-                remove_empty_folder(dirname($dir));
-            }
-        } catch (\UnexpectedValueException $e) {
-    
-        } catch (\Exception $e) {
-    
-        }
-    }
-}
-if (!function_exists('get_addons_config')) { 
-    /**
-     * 获取插件类的配置值值
-     * @param string $name 插件名
-     * @param bol $force 是否获取完整配置
-     * @return array
-     */
-    function get_addons_config($name, $force = false)
-    {
-        $addon = get_addons_instance($name);
-        if (!$addon) {
-            return [];
-        }
-        return $addon->getConfig($force);
-    }
-}
-if (!function_exists('set_addons_config')) { 
-    /**
-     * 获取插件类的配置值值
-     * @param string $name 插件名
-     * @return array
-     */
-    function set_addons_config($name, $value = [])
-    {
-        $addon = get_addons_instance($name);
-        if (!$addon) {
-            return [];
-        }
-        return $addon->setConfig($value);
-    }
-}
+
 if (!function_exists('get_addons_info')) {
     /**
      * 读取插件的基础信息
@@ -181,38 +83,60 @@ if (!function_exists('set_addons_info')) {
         return $addon->setInfo($info);
     }
 }
-if (!function_exists('get_addons_list')) {
+
+if (!function_exists('get_addons_instance')) {
     /**
-     * 获得插件列表
-     * @return array
+     * 获取插件的单例
+     * @param string $name 插件名
+     * @return mixed|null
      */
-    function get_addons_list()
+    function get_addons_instance($name)
     {
-        $results = scandir(app()->getRootPath() . 'addons');
-        $list = [];
-        foreach ($results as $name) {
-            if ($name === '.' or $name === '..') {
-                continue;
-            }
-            //检查指定的文件是否是常规的文件
-            if (is_file(app()->getRootPath() . 'addons'  . DIRECTORY_SEPARATOR . $name)) {
-                continue;
-            }
-            $addonDir = app()->getRootPath() . 'addons'  . DIRECTORY_SEPARATOR . $name . DIRECTORY_SEPARATOR;
-            //检查指定的文件是否是一个目录
-            if (!is_dir($addonDir)) {
-                continue;
-            }
-            $info = get_addons_info($name);
-            if (!isset($info['name'])) {
-                continue;
-            }
-            $info['url'] = addons_url($name);
-            $list[$name] = $info;
+        static $_addons = [];
+        if (isset($_addons[$name])) {
+            return $_addons[$name];
         }
-        return $list;
+		
+        $class = get_addons_class($name);
+        if (class_exists($class)) {
+            $_addons[$name] = new $class(app());
+            return $_addons[$name];
+        } else {
+            return null;
+        }
     }
 }
+
+if (!function_exists('get_addons_class')) {
+    /**
+     * 获取插件类的类名
+     * @param string $name 插件名
+     * @param string $type 返回命名空间类型
+     * @param string $class 当前类名
+     * @return string
+     */
+    function get_addons_class($name, $type = 'hook', $class = null)
+    {
+        $name = trim($name);
+        // 处理多级控制器情况
+        if (!is_null($class) && strpos($class, '.')) {
+            $class = explode('.', $class);
+            $class[count($class) - 1] = Str::studly(end($class));
+            $class = implode('\\', $class);
+        } else {
+            $class = Str::studly(is_null($class) ? $name : $class);
+        }
+        switch ($type) {
+            case 'controller':
+                $namespace = '\\addons\\' . $name . '\\controller\\' . $class;
+                break;
+            default:
+                $namespace = '\\addons\\' . $name . '\\Plugin';
+        }
+        return class_exists($namespace) ? $namespace : '';
+    }
+}
+
 if (!function_exists('addons_url')) {
     /**
      * 插件显示内容里生成访问插件的url
@@ -254,28 +178,95 @@ if (!function_exists('addons_url')) {
         return Route::buildUrl("@addons/{$addons}/{$controller}/{$action}", $param)->suffix($suffix)->domain($domain);
     }
 }
-if (!function_exists('get_addons_instance')) {
+
+if (!function_exists('remove_empty_folder')) {
     /**
-     * 获取插件的单例
-     * @param string $name 插件名
-     * @return mixed|null
+     * 移除空目录
+     * @param string $dir 目录
      */
-    function get_addons_instance($name)
+    function remove_empty_folder($dir)
     {
-        static $_addons = [];
-        if (isset($_addons[$name])) {
-            return $_addons[$name];
-        }
-		
-        $class = get_addons_class($name);
-        if (class_exists($class)) {
-            $_addons[$name] = new $class(app());
-            return $_addons[$name];
-        } else {
-            return null;
+        try {
+            $isDirEmpty = !(new \FilesystemIterator($dir))->valid();
+            if ($isDirEmpty) {
+                @rmdir($dir);
+                remove_empty_folder(dirname($dir));
+            }
+        } catch (\UnexpectedValueException $e) {
+    
+        } catch (\Exception $e) {
+    
         }
     }
 }
+
+
+if (!function_exists('get_addons_config')) { 
+    /**
+     * 获取插件类的配置值值
+     * @param string $name 插件名
+     * @param bol $force 是否获取完整配置
+     * @return array
+     */
+    function get_addons_config($name, $force = false)
+    {
+        $addon = get_addons_instance($name);
+        if (!$addon) {
+            return [];
+        }
+        return $addon->getConfig($force);
+    }
+}
+if (!function_exists('set_addons_config')) { 
+    /**
+     * 获取插件类的配置值值
+     * @param string $name 插件名
+     * @return array
+     */
+    function set_addons_config($name, $value = [])
+    {
+        $addon = get_addons_instance($name);
+        if (!$addon) {
+            return [];
+        }
+        return $addon->setConfig($value);
+    }
+}
+
+if (!function_exists('get_addons_list')) {
+    /**
+     * 获得插件列表
+     * @return array
+     */
+    function get_addons_list()
+    {
+        $results = scandir(app()->getRootPath() . 'addons');
+        $list = [];
+        foreach ($results as $name) {
+            if ($name === '.' or $name === '..') {
+                continue;
+            }
+            //检查指定的文件是否是常规的文件
+            if (is_file(app()->getRootPath() . 'addons'  . DIRECTORY_SEPARATOR . $name)) {
+                continue;
+            }
+            $addonDir = app()->getRootPath() . 'addons'  . DIRECTORY_SEPARATOR . $name . DIRECTORY_SEPARATOR;
+            //检查指定的文件是否是一个目录
+            if (!is_dir($addonDir)) {
+                continue;
+            }
+            $info = get_addons_info($name);
+            if (!isset($info['name'])) {
+                continue;
+            }
+            $info['url'] = addons_url($name);
+            $list[$name] = $info;
+        }
+        return $list;
+    }
+}
+
+
 if (!function_exists('get_addons_status')) {
     /**
      * 获取插件状态
