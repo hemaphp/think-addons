@@ -1,5 +1,5 @@
 # think-addons
-The ThinkPHP 6 Addons Package
+The ThinkPHP Addons Package
 
 ## 安装
 > composer require hemaphp/think-addons
@@ -78,7 +78,7 @@ class Plugin extends Addons	// 需继承think\Addons类
     public $info = [
         'name' => 'test',	// 插件标识
         'title' => '插件测试',	// 插件名称
-        'description' => 'thinkph6插件测试',	// 插件简介
+        'description' => 'thinkphp插件测试',	// 插件简介
         'status' => 0,	// 状态
         'author' => 'byron sampson',
         'version' => '0.1'
@@ -155,7 +155,7 @@ test为插件名，Action为controller中的类名[多级控制器可以用.分�
 
 ### 创建插件的controller文件
 > 在test目录中创建controller目录，在controller目录中创建Index.php文件
-> controller类的用法与tp6中的controller一致
+> controller类的用法与tp中的controller一致
 
 ```php
 <?php
@@ -181,7 +181,7 @@ class Index
 ```
 
 ### php业务中使用
-> 只要是thinkphp6正常流程中的任意位置均可以使用
+> 只要是thinkphp正常流程中的任意位置均可以使用
 
 ```php
 hook('testhook', ['id'=>1])
