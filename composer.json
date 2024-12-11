@@ -1,6 +1,6 @@
 {
     "name": "hemaphp/think-addons",
-    "description": "The ThinkPHP8 Addons Package",
+    "description": "The ThinkPHP Addons Package",
     "license": "Apache-2.0",
     "authors": [
         {
